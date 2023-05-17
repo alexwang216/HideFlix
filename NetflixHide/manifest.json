@@ -1,34 +1,25 @@
 {
-  "manifest_version": 2,
-
-  "name": "Netflix Hide",
-  "description": "Allows you to hide or tint unwanted shows from the Netflix page. Please refresh the page after installing the extension.",
-  "version": "1.0",
-
-  "browser_action": {
-    "default_icon": {
-		"16": "images/icon16.png",          
-        "48": "images/icon48.png",          
-        "128": "images/icon128.png"
-	},
-    "default_popup": "popup.html"
+  "background": {
+     "persistent": true,
+     "scripts": [ "js/popup.js" ]
   },
-  
-   "content_scripts": [
-        {
-          "matches": ["*://*.netflix.com/*"],
-		  "css":["css/dropdown.css"],
-          "js": ["js/Remove.js"]	  
-        }
-    ],
-	"background": {
-        "persistent": true,
-        "scripts": ["js/popup.js"]
-    },
-  "permissions": [
-    "activeTab",
-    "storage",
-	"unlimitedStorage",
-	"contextMenus"
-  ]
+  "browser_action": {
+     "default_icon": {
+        "128": "images/icon128.png",
+        "16": "images/icon16.png",
+        "48": "images/icon48.png"
+     },
+     "default_popup": "popup.html"
+  },
+  "content_scripts": [ {
+     "css": [ "css/dropdown.css" ],
+     "js": [ "js/Remove.js" ],
+     "matches": [ "*://*.netflix.com/*" ]
+  } ],
+  "description": "Allows you to hide or tint unwanted Netflix shows from your feed.",
+  "manifest_version": 2,
+  "name": "ShowHideFlix",
+  "permissions": [ "activeTab", "storage", "unlimitedStorage", "contextMenus" ],
+  "short_name": "ShowHideFlix",
+  "version": "1.3.2"
 }
