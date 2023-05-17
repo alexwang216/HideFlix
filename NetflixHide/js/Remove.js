@@ -43,7 +43,9 @@ var hideOrTint = function(sliderDiv) {
         } else {
             sliderDiv.style.display = "none";
         }
-    } else if (name != null && edit && !sliderDiv.querySelector("div[class='select-style']")) {
+    }
+    
+    if (name != null && edit && !sliderDiv.querySelector("div[class='select-style']")) {
         var divNode = document.createElement("div");
         divNode.className = "select-style";
         var imgNode = document.createElement("button");
