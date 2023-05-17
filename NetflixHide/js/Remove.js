@@ -37,7 +37,7 @@ var hideOrTint = function(sliderDiv) {
     let name = getMovieName(sliderDiv);
     if (name == null) {
         sliderDiv.style.display = "none";
-    } else if (movies != null && movies[name]) {
+    } else if (movies != null && movies[name] === "Remove") {
         if (removeOrTint == 'tint') {
             sliderDiv.style.opacity = "0.2";
         } else {
@@ -78,7 +78,7 @@ var editMode = function() {
             let div = selectNode.parentElement;
             div.removeChild(selectNode);
             let movieName = getMovieName(div);
-            if (movies[movieName]) {
+            if (movies[movieName] === "Remove") {
                 if (removeOrTint == 'tint') {
                     div.style.opacity = "0.2";
                 } else {
@@ -163,9 +163,9 @@ var saveAndRestoreSlider = function(clickedElement) {
     }
     try {
         let tmp = {};
-        tmp[movieName] = "Remove";
-        delete movies[movieName];
-        chrome.storage.sync.remove(tmp, function() {
+        tmp[movieName] = "";
+        movies[movieName] = "";
+        chrome.storage.sync.set(tmp, function() {
             if (removeOrTint == 'tint') {
                 sliderDiv.style.opacity = null;
             } else {
