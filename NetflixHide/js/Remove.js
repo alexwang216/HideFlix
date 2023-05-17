@@ -100,6 +100,9 @@ chrome.runtime.onMessage.addListener(function(requestMsg, sender, sendResponse) 
         case "Remove":
             saveAndRemoveSlider(clickedElement);
             break;
+        case "Restore":
+            saveAndRestoreSlider(clickedElement);
+            break;
         case "Reset":
             alert("Reset");
             resetChromeData();
@@ -160,9 +163,9 @@ var saveAndRestoreSlider = function(clickedElement) {
     }
     try {
         let tmp = {};
-        delete tmp[movieName];
+        tmp[movieName] = "Remove";
         delete movies[movieName];
-        chrome.storage.sync.set(tmp, function() {
+        chrome.storage.sync.remove(tmp, function() {
             if (removeOrTint == 'tint') {
                 sliderDiv.style.opacity = null;
             } else {
