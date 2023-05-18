@@ -180,7 +180,10 @@ var getSliderDiv = function(target) {
 var getMovieName = function(target) {
     let movieElement = target.querySelector("a[aria-label]");
     if (movieElement) {
-        return movieElement.getAttribute("aria-label");
+        //return movieElement.getAttribute("aria-label");
+        const href = movieElement.getAttribute("href");
+        const movieId = href.match(/\b\d+\b/ig)[0];
+        return movieId;
     }
     return null;
 }
