@@ -37,7 +37,7 @@ var hideOrTint = function (sliderDiv) {
     let name = getMovieName(sliderDiv);
     if (name == null) {
         sliderDiv.style.display = 'none';
-    } else if (movies != null && movies[name] === 'Remove') {
+    } else if (movies != null && movies.includes(name)) {
         if (removeOrTint == 'tint') {
             sliderDiv.style.opacity = '0.2';
         } else {
@@ -78,7 +78,7 @@ var editMode = function () {
             let div = selectNode.parentElement;
             div.removeChild(selectNode);
             let movieName = getMovieName(div);
-            if (movies[movieName] === 'Remove') {
+            if (movies.includes(movieName)) {
                 if (removeOrTint == 'tint') {
                     div.style.opacity = '0.2';
                 } else {
@@ -139,10 +139,11 @@ var saveAndRemoveSlider = function (clickedElement) {
         return;
     }
     try {
-        let tmp = {};
-        tmp[movieName] = 'Remove';
-        movies[movieName] = 'Remove';
-        chrome.storage.sync.set(tmp, () => {
+        if (!movies) movies = [];
+        if (movies.includes(movieName)) return;
+
+        movies.push(movieName);
+        chrome.storage.sync.set({'movies': movies}, () => {
             if (removeOrTint == 'tint') {
                 sliderDiv.style.opacity = '0.2';
             } else {
@@ -162,10 +163,11 @@ var saveAndRestoreSlider = function (clickedElement) {
         return;
     }
     try {
-        let tmp = {};
-        tmp[movieName] = '';
-        movies[movieName] = '';
-        chrome.storage.sync.set(tmp, () => {
+        if (!movies) return;
+        if (!movies.includes(movieName)) return;
+
+        movies = movies.filter(movie => movie !== movieName);
+        chrome.storage.sync.set({'movies': movies}, () => {
             if (removeOrTint == 'tint') {
                 sliderDiv.style.opacity = null;
             } else {
@@ -223,56 +225,22 @@ var profileCallback = function (mutationsList) {
 };
 var profileObserver = new MutationObserver(profileCallback);
 var removeOrTint = 'tint';
-if (document.readyState === 'complete') {
-    if (movies == null) {
-        chrome.storage.sync.get(['ManageInterface', 'editEnabled'], (data) => {
-            if (data != null) {
-                if (data['ManageInterface'] == 'remove') {
-                    removeOrTint = 'remove';
-                } else if (data['tint'] == 'remove') {
-                    removeOrTint = 'tint';
-                }
-                if (data['editEnabled']) {
-                    edit = true;
-                } else if (!data['editEnabled']) {
-                    edit = false;
-                }
-            } else {
-                removeOrTint = 'tint';
-                edit = false;
-            }
-            chrome.storage.sync.get(null, (e) => {
-                movies = e;
-                let profile = document.querySelector('div[class^=\'profile\']');
-                if (profile != null) {
-                    profileObserver.observe(profile, {
-                        childList: true,
-                    });
-                }
-                addMainListener();
-            });
-        });
-    }
-}
-window.onload = function load() {
+var loadSetting = function() {
     chrome.storage.sync.get(['ManageInterface', 'editEnabled'], (data) => {
-        if (data != null) {
+        if (data) {
             if (data['ManageInterface'] == 'remove') {
                 removeOrTint = 'remove';
             } else if (data['tint'] == 'remove') {
                 removeOrTint = 'tint';
             }
-            if (data['editEnabled']) {
-                edit = true;
-            } else if (!data['editEnabled']) {
-                edit = false;
-            }
+            
+            edit = data['editEnabled'] ?? false;
         } else {
             removeOrTint = 'tint';
             edit = false;
         }
-        chrome.storage.sync.get(null, (e) => {
-            movies = e;
+        chrome.storage.sync.get(['movies'], (e) => {
+            movies = e['movies'] ?? [];
             let profile = document.querySelector('div[class^=\'profile\']');
             if (profile != null) {
                 profileObserver.observe(profile, {
@@ -283,3 +251,9 @@ window.onload = function load() {
         });
     });
 }
+if (document.readyState === 'complete') {
+    if (movies == null) {
+        loadSetting();
+    }
+}
+window.onload = loadSetting;
