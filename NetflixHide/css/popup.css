@@ -1,38 +1,38 @@
-body{
-	text-align: center;
-	white-space: nowrap;
-	display: block;
+body {
+    text-align: center;
+    white-space: nowrap;
+    display: block;
     margin-left: auto;
     margin-right: auto;
-	width: 300px;
-	
+    width: 300px;
+
 }
 
-body.off{
-	color: #ccc;
-	background-color: white;
+body.off {
+    color: #ccc;
+    background-color: white;
 }
 
-body.on{
-	color: red;
+body.on {
+    color: red;
 }
 
-#edit:hover{
-	opacity: 0.5;
+#edit:hover {
+    opacity: 0.5;
 }
 
 .editEnabled {
-	font-size: 48px;
-	color:green;	
+    font-size: 48px;
+    color: green;
 }
 
 .editDisabled {
-	font-size: 48px;
-	color:grey;	
+    font-size: 48px;
+    color: grey;
 }
 
 span {
-     vertical-align: middle;
+    vertical-align: middle;
 }
 
 .tooltip {
@@ -46,11 +46,9 @@ span {
     color: #fff;
 }
 
-
 .tooltip:hover .tooltiptext {
     visibility: visible;
 }
-
 
 table {
     font-family: arial, sans-serif;
@@ -58,15 +56,17 @@ table {
     width: 100%;
 }
 
-td, th {
+td,
+th {
     border: 1px solid #dddddd;
     text-align: center;
     padding: 8px;
 }
 
-tr:nth-child(even) {
+.even-row {
     background-color: #dddddd;
 }
 
-
-
+.d-none {
+    display: none !important;
+}

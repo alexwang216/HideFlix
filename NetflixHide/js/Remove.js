@@ -34,18 +34,22 @@ var config = {
     subtree: true
 };
 var hideOrTint = function (sliderDiv) {
-    let name = getMovieName(sliderDiv);
-    if (name == null) {
+    let { movieId, movieName } = getMovieName(sliderDiv);
+    if (movieId == null) {
         sliderDiv.style.display = 'none';
-    } else if (movies != null && movies.includes(name)) {
+    } else if (movies && movies.some(ele => ele.id === movieId)) {
         if (removeOrTint == 'tint') {
             sliderDiv.style.opacity = '0.2';
         } else {
             sliderDiv.style.display = 'none';
         }
+
+        const movie = movies.find((movie) => movie.id === movieId)
+        if (movie && movie.name === '') movie.name = movieName;
+        chrome.storage.local.set({ 'movies': movies });
     }
 
-    if (name != null && edit && !sliderDiv.querySelector('div[class=\'select-style\']')) {
+    if (movieId && edit && !sliderDiv.querySelector('div[class=\'select-style\']')) {
         var divNode = document.createElement('div');
         divNode.className = 'select-style';
         var imgNode = document.createElement('button');
@@ -77,8 +81,8 @@ var editMode = function () {
             let selectNode = selectList[i];
             let div = selectNode.parentElement;
             div.removeChild(selectNode);
-            let movieName = getMovieName(div);
-            if (movies.includes(movieName)) {
+            let { movieId, } = getMovieName(div);
+            if (movies.some(ele => ele.id === movieId)) {
                 if (removeOrTint == 'tint') {
                     div.style.opacity = '0.2';
                 } else {
@@ -124,7 +128,7 @@ var imgRestore = function () {
     saveAndRestoreSlider(this);
 }
 var resetChromeData = function () {
-    chrome.storage.sync.clear(function () {
+    chrome.storage.local.clear(function () {
         window.location.reload(true);
     });
 }
@@ -134,16 +138,16 @@ var saveAndRemoveSlider = function (clickedElement) {
         alert('Please try again.');
         return;
     }
-    let movieName = getMovieName(sliderDiv);
-    if (movieName == null) {
+    let { movieId, movieName } = getMovieName(sliderDiv);
+    if (movieId == null) {
         return;
     }
     try {
         if (!movies) movies = [];
-        if (movies.includes(movieName)) return;
+        if (movies.some(ele => ele.id === movieId)) return;
 
-        movies.push(movieName);
-        chrome.storage.sync.set({'movies': movies}, () => {
+        movies.push({ id: movieId, name: movieName });
+        chrome.storage.local.set({ 'movies': movies }, () => {
             if (removeOrTint == 'tint') {
                 sliderDiv.style.opacity = '0.2';
             } else {
@@ -158,16 +162,16 @@ var saveAndRestoreSlider = function (clickedElement) {
         alert('Please try again.');
         return;
     }
-    let movieName = getMovieName(sliderDiv);
-    if (movieName == null) {
+    let { movieId, } = getMovieName(sliderDiv);
+    if (movieId == null) {
         return;
     }
     try {
         if (!movies) return;
-        if (!movies.includes(movieName)) return;
+        if (!movies.some(ele => ele.id === movieId)) return;
 
-        movies = movies.filter(movie => movie !== movieName);
-        chrome.storage.sync.set({'movies': movies}, () => {
+        movies = movies.filter(movie => movie.id !== movieId);
+        chrome.storage.local.set({ 'movies': movies }, () => {
             if (removeOrTint == 'tint') {
                 sliderDiv.style.opacity = null;
             } else {
@@ -182,12 +186,12 @@ var getSliderDiv = function (target) {
 var getMovieName = function (target) {
     let movieElement = target.querySelector('a[aria-label]');
     if (movieElement) {
-        //return movieElement.getAttribute('aria-label');
+        const movieName = movieElement.getAttribute('aria-label');
         const href = movieElement.getAttribute('href');
         const movieId = href.match(/\b\d+\b/ig)[0];
-        return movieId;
+        return { movieId, movieName };
     }
-    return null;
+    return { movieId: null, movieName: null };
 }
 var getNearestParent = function (elem, selector) {
     for (; elem && elem !== document; elem = elem.parentNode) {
@@ -225,22 +229,33 @@ var profileCallback = function (mutationsList) {
 };
 var profileObserver = new MutationObserver(profileCallback);
 var removeOrTint = 'tint';
-var loadSetting = function() {
-    chrome.storage.sync.get(['ManageInterface', 'editEnabled'], (data) => {
+var loadSetting = function () {
+    chrome.storage.local.get(['ManageInterface', 'editEnabled'], (data) => {
         if (data) {
             if (data['ManageInterface'] == 'remove') {
                 removeOrTint = 'remove';
             } else if (data['tint'] == 'remove') {
                 removeOrTint = 'tint';
             }
-            
+
             edit = data['editEnabled'] ?? false;
         } else {
             removeOrTint = 'tint';
             edit = false;
         }
-        chrome.storage.sync.get(['movies'], (e) => {
+        chrome.storage.local.get(['movies'], (e) => {
             movies = e['movies'] ?? [];
+
+            // upgrade the variable
+            if (movies.length > 0 && !movies[0].id) {
+                const tmpMovies = [];
+                movies.forEach((movieId) => tmpMovies.push({ id: movieId, name: '' }));
+                movies = tmpMovies;
+            }
+
+            chrome.storage.local.set({ 'movies': movies });
+            console.log(movies);
+
             let profile = document.querySelector('div[class^=\'profile\']');
             if (profile != null) {
                 profileObserver.observe(profile, {
