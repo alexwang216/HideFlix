@@ -206,7 +206,7 @@ function readAndSaveJson() {
                 let element = importedData[parm];
 
                 if (parm == 'movies') {
-                    element = merge(oldMovies, importedData[parm])
+                    element = merge(oldMovies, importedData[parm], (a, b) => a.id === b.id);
                 }
 
                 let tmp = {};
