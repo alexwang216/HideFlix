@@ -186,13 +186,28 @@ window.addEventListener('load', () => {
         applyEvenRowCss(document.getElementById('movieList'));
     });
 }, false);
+const merge = (a, b, predicate = (a, b) => a === b) => {
+    const c = [...a]; // copy to avoid side effects
+    // add all items from B to copy C if they're not already present
+    b.forEach((bItem) => (c.some((cItem) => predicate(bItem, cItem)) ? null : c.push(bItem)))
+    return c;
+}
 function readAndSaveJson() {
     var importedData = JSON.parse(this.result);
+
+    let oldMovies;
+    chrome.storage.local.get(['movies'], (e) => {
+        oldMovies = e['movies'] ?? [];
+    });
 
     chrome.storage.local.clear(() => {
         for (const parm in importedData) {
             if (Object.hasOwnProperty.call(importedData, parm)) {
-                const element = importedData[parm];
+                let element = importedData[parm];
+
+                if (parm == 'movies') {
+                    element = merge(oldMovies, importedData[parm])
+                }
 
                 let tmp = {};
                 tmp[parm] = element;
